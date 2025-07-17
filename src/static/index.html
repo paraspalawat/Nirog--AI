@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NirogAI - Bharat's AI Health Assistant</title>
+    <meta name="description" content="AI-powered health assistant supporting local Indian languages">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span data-translate="brand">NirogAI</span>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link" data-translate="nav.home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#symptoms" class="nav-link" data-translate="nav.symptoms">Symptoms Checker</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#health-info" class="nav-link" data-translate="nav.health">Health Info</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#languages" class="nav-link" data-translate="nav.languages">Languages</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link" data-translate="nav.about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link" data-translate="nav.contact">Contact</a>
+                </li>
+            </ul>
+            <div class="nav-toggle" id="nav-toggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title" data-translate="hero.title">Welcome to NirogAI – Your Local AI Health Companion</h1>
+                <p class="hero-subtitle" data-translate="hero.subtitle">Get instant health insights in your preferred language with AI-powered assistance</p>
+                <button class="cta-button" onclick="scrollToSection('symptoms')" data-translate="hero.cta">Start Checking</button>
+            </div>
+            <div class="hero-image">
+                <div class="hero-illustration">
+                    <i class="fas fa-user-md"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Symptoms Checker -->
+    <section id="symptoms" class="symptoms-section">
+        <div class="container">
+            <h2 class="section-title" data-translate="symptoms.title">AI Symptoms Checker</h2>
+            <p class="section-subtitle" data-translate="symptoms.subtitle">Describe your symptoms and get instant AI-powered insights</p>
+            
+            <div class="symptoms-form-container">
+                <form id="symptoms-form" class="symptoms-form">
+                    <div class="form-group">
+                        <label for="symptoms-input" data-translate="symptoms.label">Describe your symptoms</label>
+                        <textarea 
+                            id="symptoms-input" 
+                            placeholder="e.g., I have a headache and fever for 2 days..."
+                            data-translate-placeholder="symptoms.placeholder"
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="language-select" data-translate="symptoms.language">Select Language</label>
+                        <select id="language-select">
+                            <option value="en">English</option>
+                            <option value="hi">हिंदी (Hindi)</option>
+                            <option value="ta">தமிழ் (Tamil)</option>
+                            <option value="bn">বাংলা (Bengali)</option>
+                            <option value="te">తెలుగు (Telugu)</option>
+                            <option value="mr">मराठी (Marathi)</option>
+                            <option value="gu">ગુજરાતી (Gujarati)</option>
+                            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" data-translate="symptoms.submit">
+                        <span class="btn-text">Get Diagnosis</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p data-translate="symptoms.loading">Analyzing your symptoms...</p>
+                </div>
+                
+                <div id="result" class="result hidden">
+                    <div class="result-card">
+                        <h3 data-translate="symptoms.result.title">AI Analysis Result</h3>
+                        <div id="result-content"></div>
+                        <div class="result-disclaimer">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span data-translate="symptoms.disclaimer">This is AI-generated information and should not replace professional medical advice.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search History -->
+            <div id="search-history" class="search-history">
+                <h3 data-translate="symptoms.history.title">Recent Searches</h3>
+                <div id="history-list" class="history-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Health Info Section -->
+    <section id="health-info" class="health-info-section">
+        <div class="container">
+            <h2 class="section-title" data-translate="health.title">Health Information</h2>
+            <p class="section-subtitle" data-translate="health.subtitle">Learn about common health conditions and preventive care</p>
+            
+            <div class="health-tiles">
+                <div class="health-tile" onclick="openHealthModal('fever')">
+                    <div class="tile-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <h3 data-translate="health.fever.title">Fever</h3>
+                    <p data-translate="health.fever.desc">Understanding fever causes and management</p>
+                </div>
+                
+                <div class="health-tile" onclick="openHealthModal('cough')">
+                    <div class="tile-icon">
+                        <i class="fas fa-lungs"></i>
+                    </div>
+                    <h3 data-translate="health.cough.title">Cough</h3>
+                    <p data-translate="health.cough.desc">Types of cough and treatment options</p>
+                </div>
+                
+                <div class="health-tile" onclick="openHealthModal('diabetes')">
+                    <div class="tile-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3 data-translate="health.diabetes.title">Diabetes</h3>
+                    <p data-translate="health.diabetes.desc">Managing diabetes and blood sugar levels</p>
+                </div>
+                
+                <div class="health-tile" onclick="openHealthModal('mental-health')">
+                    <div class="tile-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 data-translate="health.mental.title">Mental Health</h3>
+                    <p data-translate="health.mental.desc">Mental wellness and stress management</p>
+                </div>
+                
+                <div class="health-tile" onclick="openHealthModal('first-aid')">
+                    <div class="tile-icon">
+                        <i class="fas fa-first-aid"></i>
+                    </div>
+                    <h3 data-translate="health.firstaid.title">First Aid</h3>
+                    <p data-translate="health.firstaid.desc">Emergency first aid procedures</p>
+                </div>
+                
+                <div class="health-tile" onclick="openHealthModal('nutrition')">
+                    <div class="tile-icon">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <h3 data-translate="health.nutrition.title">Nutrition</h3>
+                    <p data-translate="health.nutrition.desc">Healthy eating and dietary guidelines</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Languages Section -->
+    <section id="languages" class="languages-section">
+        <div class="container">
+            <h2 class="section-title" data-translate="languages.title">Supported Languages</h2>
+            <p class="section-subtitle" data-translate="languages.subtitle">Choose your preferred language for better communication</p>
+            
+            <div class="language-grid">
+                <div class="language-card" onclick="changeLanguage('en')">
+                    <div class="flag">🇺🇸</div>
+                    <h3>English</h3>
+                    <p>Universal language</p>
+                </div>
+                
+                <div class="language-card" onclick="changeLanguage('hi')">
+                    <div class="flag">🇮🇳</div>
+                    <h3>हिंदी</h3>
+                    <p>Hindi</p>
+                </div>
+                
+                <div class="language-card" onclick="changeLanguage('ta')">
+                    <div class="flag">🇮🇳</div>
+                    <h3>தமிழ்</h3>
+                    <p>Tamil</p>
+                </div>
+                
+                <div class="language-card" onclick="changeLanguage('bn')">
+                    <div class="flag">🇮🇳</div>
+                    <h3>বাংলা</h3>
+                    <p>Bengali</p>
+                </div>
+                
+                <div class="language-card" onclick="changeLanguage('te')">
+                    <div class="flag">🇮🇳</div>
+                    <h3>తెలుగు</h3>
+                    <p>Telugu</p>
+                </div>
+                
+                <div class="language-card" onclick="changeLanguage('mr')">
+                    <div class="flag">🇮🇳</div>
+                    <h3>मराठी</h3>
+                    <p>Marathi</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title" data-translate="about.title">About NirogAI</h2>
+                    <p data-translate="about.desc1">NirogAI is an innovative AI-powered health assistant designed specifically for India's diverse linguistic landscape. Our mission is to make healthcare information accessible to everyone, regardless of their preferred language.</p>
+                    <p data-translate="about.desc2">With support for multiple Indian languages, NirogAI bridges the gap between advanced AI technology and local healthcare needs, providing instant, reliable health insights in your native language.</p>
+                    
+                    <div class="about-features">
+                        <div class="feature">
+                            <i class="fas fa-language"></i>
+                            <span data-translate="about.feature1">Multi-language Support</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-robot"></i>
+                            <span data-translate="about.feature2">AI-Powered Analysis</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <span data-translate="about.feature3">Privacy Protected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-image">
+                    <div class="about-illustration">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2 class="section-title" data-translate="contact.title">Contact Us</h2>
+            <p class="section-subtitle" data-translate="contact.subtitle">Get in touch with our team for support or feedback</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3 data-translate="contact.email">Email</h3>
+                            <p>support@nirogai.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3 data-translate="contact.phone">Phone</h3>
+                            <p>+91 98765 43210</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3 data-translate="contact.address">Address</h3>
+                            <p>Mumbai, Maharashtra, India</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form class="contact-form" id="contact-form">
+                    <div class="form-group">
+                        <input type="text" placeholder="Your Name" data-translate-placeholder="contact.name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Your Email" data-translate-placeholder="contact.email.placeholder" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea placeholder="Your Message" data-translate-placeholder="contact.message" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" data-translate="contact.send">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>NirogAI</span>
+                    </div>
+                    <p data-translate="footer.desc">Making healthcare accessible through AI and local languages</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 data-translate="footer.links">Quick Links</h3>
+                    <ul>
+                        <li><a href="#home" data-translate="nav.home">Home</a></li>
+                        <li><a href="#symptoms" data-translate="nav.symptoms">Symptoms Checker</a></li>
+                        <li><a href="#health-info" data-translate="nav.health">Health Info</a></li>
+                        <li><a href="#about" data-translate="nav.about">About</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 data-translate="footer.legal">Legal</h3>
+                    <ul>
+                        <li><a href="#" data-translate="footer.disclaimer">Disclaimer</a></li>
+                        <li><a href="#" data-translate="footer.privacy">Privacy Policy</a></li>
+                        <li><a href="#" data-translate="footer.terms">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 data-translate="footer.social">Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 NirogAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Health Modal -->
+    <div id="health-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeHealthModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
