@@ -41,7 +41,7 @@
 
 ## 🖥️ Live Demo
 
-🔗 [**Try NirogAI Now**](https://nirogai.netlify.app/) – Available 24x7, for everyone!
+🔗 [**Try NirogAI Now**](https://nirog-ai-2.onrender.com/) – Available 24x7, for everyone!
 
 ---
 
