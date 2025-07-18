@@ -1,3 +1,8 @@
+# Add these two lines to the VERY TOP of src/main.py
+from gevent import monkey
+monkey.patch_all()
+
+
 import os
 import sys
 # DON'T CHANGE THIS !!!
