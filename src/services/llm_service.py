@@ -1,247 +1,153 @@
-import os
-import json
-import requests
-from typing import Dict, List, Optional
-from dotenv import load_dotenv
+# In src/services/llm_service.py
 
+import os
+from dotenv import load_dotenv
+from huggingface_hub import InferenceClient
+
+# Load the .env file
 load_dotenv()
 
 class LLMService:
     def __init__(self):
-        self.api_key = os.getenv('OPENROUTER_API_KEY')
-        self.base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
-        self.headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://nirogai.com',
-            'X-Title': 'NirogAI Medical Assistant'
-        }
+        # --- Setup for Hugging Face API ---
+        hf_token = os.getenv('HUGGING_FACE_TOKEN')
+        if not hf_token:
+            print("FATAL ERROR: HUGGING_FACE_TOKEN not found.")
         
-        # Disease-specific system prompts
+        self.client = InferenceClient(token=hf_token)
+        self.model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
+
+        # --- Your excellent, detailed prompts ---
         self.disease_prompts = {
             "fever": """You are a medical AI assistant specializing in fever-related conditions. 
             Analyze the symptoms and provide concise, helpful information about possible causes 
             and general care recommendations. Focus on fever management, hydration, and when to seek medical care.
             Always include a medical disclaimer that this is not professional medical advice.""",
-            
             "respiratory": """You are a medical AI assistant specializing in respiratory conditions.
-            Focus on cough, breathing difficulties, chest pain, and lung-related symptoms. 
-            Provide guidance on respiratory care, when symptoms are concerning, and general management.
-            Always include a medical disclaimer that this is not professional medical advice.""",
-            
-            "digestive": """You are a medical AI assistant specializing in digestive and gastrointestinal conditions.
-            Focus on stomach pain, nausea, vomiting, diarrhea, and digestive issues.
-            Provide guidance on dietary management and when to seek medical care.
-            Always include a medical disclaimer that this is not professional medical advice.""",
-            
-            "neurological": """You are a medical AI assistant specializing in neurological symptoms.
-            Focus on headaches, dizziness, confusion, and nervous system related symptoms.
-            Provide guidance on symptom management and when immediate medical attention is needed.
-            Always include a medical disclaimer that this is not professional medical advice.""",
-            
-            "cardiovascular": """You are a medical AI assistant specializing in cardiovascular conditions.
-            Focus on chest pain, heart palpitations, shortness of breath, and circulation issues.
-            Emphasize when immediate medical attention is required for heart-related symptoms.
-            Always include a medical disclaimer that this is not professional medical advice.""",
-            
-            "musculoskeletal": """You are a medical AI assistant specializing in musculoskeletal conditions.
-            Focus on joint pain, muscle aches, bone pain, and mobility issues.
-            Provide guidance on pain management, rest, and when to seek medical evaluation.
-            Always include a medical disclaimer that this is not professional medical advice.""",
-            
+            Focus on cough, breathing difficulties, and lung-related symptoms. Provide guidance on respiratory care and general management.""",
+            "digestive": """You are a medical AI assistant specializing in digestive conditions.
+            Focus on stomach pain, nausea, vomiting, and diarrhea. Provide guidance on dietary management.""",
+            # Add your other prompts (neurological, etc.) here
             "general": """You are a medical AI assistant providing general health guidance.
             Analyze the described symptoms and provide helpful, concise information about possible causes
-            and general care recommendations. Focus on symptom management and when to seek professional care.
-            Always include a medical disclaimer that this is not professional medical advice."""
+            and general care recommendations. Always include a medical disclaimer."""
         }
-        
-        # Language-specific instructions
         self.language_instructions = {
             "en": "Respond in clear, simple English.",
-            "hi": "Respond in Hindi (हिंदी). Use simple, clear language that is easy to understand.",
-            "ta": "Respond in Tamil (தமிழ்). Use simple, clear language that is easy to understand.",
-            "bn": "Respond in Bengali (বাংলা). Use simple, clear language that is easy to understand.",
-            "te": "Respond in Telugu (తెలుగు). Use simple, clear language that is easy to understand.",
-            "mr": "Respond in Marathi (मराठी). Use simple, clear language that is easy to understand.",
-            "gu": "Respond in Gujarati (ગુજરાતી). Use simple, clear language that is easy to understand.",
-            "kn": "Respond in Kannada (ಕನ್ನಡ). Use simple, clear language that is easy to understand."
+            "hi": "Respond in Hindi (हिंदी). Use simple, clear language.",
+            "ta": "Respond in Tamil (தமிழ்). Use simple, clear language."
+            # Add your other languages here
         }
 
     def detect_condition_category(self, symptoms: str) -> str:
-        """Detect the primary condition category from symptoms"""
+        """Your function to detect the primary condition category from symptoms"""
         symptoms_lower = symptoms.lower()
-        
-        # Fever-related keywords
-        fever_keywords = ['fever', 'temperature', 'hot', 'chills', 'sweating', 'बुखार', 'காய்ச்சல்', 'জ্বর']
+        fever_keywords = ['fever', 'temperature', 'hot', 'chills', 'बुखार', 'காய்ச்சல்']
         if any(keyword in symptoms_lower for keyword in fever_keywords):
             return "fever"
         
-        # Respiratory keywords
-        respiratory_keywords = ['cough', 'breathing', 'chest', 'lungs', 'shortness of breath', 'wheeze', 'खांसी', 'இருமல்', 'কাশি']
+        respiratory_keywords = ['cough', 'breathing', 'chest', 'lungs', 'खांसी', 'இருமல்']
         if any(keyword in symptoms_lower for keyword in respiratory_keywords):
             return "respiratory"
-        
-        # Digestive keywords
-        digestive_keywords = ['stomach', 'nausea', 'vomiting', 'diarrhea', 'abdominal', 'digestion', 'पेट', 'வயிறு', 'পেট']
+            
+        digestive_keywords = ['stomach', 'nausea', 'vomiting', 'diarrhea', 'पेट', 'வயிறு']
         if any(keyword in symptoms_lower for keyword in digestive_keywords):
             return "digestive"
-        
-        # Neurological keywords
-        neuro_keywords = ['headache', 'dizziness', 'confusion', 'memory', 'सिरदर्द', 'தலைவலி', 'মাথাব্যথা']
-        if any(keyword in symptoms_lower for keyword in neuro_keywords):
-            return "neurological"
-        
-        # Cardiovascular keywords
-        cardio_keywords = ['heart', 'chest pain', 'palpitations', 'circulation', 'दिल', 'இதயம்', 'হৃদয়']
-        if any(keyword in symptoms_lower for keyword in cardio_keywords):
-            return "cardiovascular"
-        
-        # Musculoskeletal keywords
-        musculo_keywords = ['joint', 'muscle', 'bone', 'pain', 'ache', 'जोड़', 'மூட்டு', 'জয়েন্ট']
-        if any(keyword in symptoms_lower for keyword in musculo_keywords):
-            return "musculoskeletal"
-        
+            
         return "general"
 
-    def analyze_symptoms(self, symptoms: str, language: str = "en") -> Dict:
-        """Analyze symptoms using OpenRouter LLM"""
+    def analyze_symptoms(self, symptoms: str, language: str = "en") -> dict:
+        """Analyze symptoms using your detailed prompts and the Hugging Face LLM"""
+        system_prompt = """
+## YOUR IDENTITY (PERSONA)
+You are 'Aarogya Sahayak'. You are not just an AI; you are like an experienced and trusted community health advisor from a village in India. You are calm, caring, and you speak very simple, pure Hindi so that anyone can understand you.
+
+## YOUR GOAL
+Your one and only goal is to listen to a person's health problem and give them safe, simple, initial advice. You must help them decide if they can manage at home or if they need to see a real doctor.
+
+## YOUR STEP-BY-STEP THINKING PROCESS (Before you write anything)
+1.  **Identify Language:** First, recognize the user's language.
+2.  **Assess Severity:** Read the symptoms carefully. Is this a life-threatening emergency (like 'seene mein dard', 'saans nahi le pa raha')?
+3.  **Choose Path:**
+    * If it is an EMERGENCY, your only job is to tell them to see a doctor immediately.
+    * If it is NOT an emergency, your job is to provide simple advice by strictly following the 'HINDI RESPONSE TEMPLATE' below.
+
+## HINDI RESPONSE TEMPLATE (For non-emergencies ONLY)
+You MUST generate your response by filling in the blanks of this exact template. Do not change the headings.
+
+**१. चिंता न करें, मैं आपकी मदद के लिए यहाँ हूँ।**
+
+**२. संभावित कारण:**
+[यहाँ पर सरल हिंदी में 1-2 सामान्य और संभावित कारण लिखें। जैसे: "ऐसा मौसम बदलने या ठंडी हवा लगने से हो सकता है।"]
+
+**३. सरल घरेलू उपाय (Gharelu Upay):**
+[यहाँ पर 2-3 बहुत ही सुरक्षित और आसान घरेलू उपाय लिखें जो गाँव के घर में आसानी से मिल जाएं। जैसे: "अदरक और तुलसी की चाय बनाकर पिएं।" या "गरम पानी में नमक डालकर गरारे करें।"]
+
+**४. डॉक्टर से कब मिलें?:**
+[यहाँ पर साफ़-साफ़ बताएं की डॉक्टर के पास कब जाना चाहिए। जैसे: "अगर बुखार ३ दिन से ज़्यादा रहे या खांसी और बढ़ जाए, तो ज़रूर डॉक्टर को दिखाएं।"]
+
+**५. महत्वपूर्ण चेतावनी (Disclaimer):**
+[यहाँ पर हमेशा यह सटीक वाक्य लिखें: "यह सलाह केवल जानकारी के लिए है और डॉक्टर का इलाज नहीं है। अपनी सेहत के लिए हमेशा एक योग्य डॉक्टर से ही सलाह लें।"]
+
+## EXAMPLE
+**User's Symptoms:** "मुझे दो दिन से खांसी और गले में खराश है।"
+**Your Perfect Response (You must follow this style):**
+
+**१. चिंता न करें, मैं आपकी मदद के लिए यहाँ हूँ।**
+
+**२. संभावित कारण:**
+यह मौसम के बदलाव या कुछ ठंडा खाने-पीने की वजह से हो सकता है।
+
+**३. सरल घरेलू उपाय (Gharelu Upay):**
+* दिन में दो बार गरम पानी में नमक डालकर गरारे करें।
+* अदरक और शहद मिलाकर धीरे-धीरे चाटें, इससे गले को आराम मिलेगा।
+* हल्दी वाला दूध पिएं।
+
+**४. डॉक्टर से कब मिलें?:**
+अगर आपकी खांसी ३-४ दिन में ठीक न हो, या आपको बुखार भी आने लगे, तो आपको डॉक्टर से सलाह लेनी चाहिए।
+
+**५. महत्वपूर्ण चेतावनी (Disclaimer):**
+यह सलाह केवल जानकारी के लिए है और डॉक्टर का इलाज नहीं है। अपनी सेहत के लिए हमेशा एक योग्य डॉक्टर से ही सलाह लें।
+"""
         try:
-            # Detect condition category
+            # 1. Use your function to detect the category
             condition_category = self.detect_condition_category(symptoms)
             
-            # Get appropriate system prompt
+            # 2. Get the specialized system prompt for that category
             system_prompt = self.disease_prompts.get(condition_category, self.disease_prompts["general"])
             
-            # Add language instruction
+            # 3. Get the instruction for the language
             language_instruction = self.language_instructions.get(language, self.language_instructions["en"])
             
-            # Construct the full prompt
-            full_prompt = f"{system_prompt}\n\n{language_instruction}\n\nProvide a concise response (maximum 200 words) that includes:\n1. Possible causes\n2. General recommendations\n3. When to seek medical care\n4. Medical disclaimer"
+            # 4. Construct the full prompt for the AI
+            full_prompt = f"{system_prompt}\n\n{language_instruction}\n\nStrictly follow these instructions and provide a helpful, safe response."
             
-            # Prepare the request
-            payload = {
-                "model": "anthropic/claude-3.5-sonnet",  # Using Claude for medical analysis
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": full_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Symptoms: {symptoms}"
-                    }
-                ],
-                "max_tokens": 500,
-                "temperature": 0.3,  # Lower temperature for more consistent medical advice
-                "top_p": 0.9
-            }
-            
-            # Make the API request
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers=self.headers,
-                json=payload,
-                timeout=30
+            # 5. Create the message payload for Hugging Face
+            messages = [
+                {"role": "system", "content": full_prompt},
+                {"role": "user", "content": f"My symptoms are: {symptoms}"}
+            ]
+
+            # 6. Make the API call
+            response = self.client.chat_completion(
+                messages=messages,
+                model=self.model_id,
+                max_tokens=500,
+                temperature=0.4,
             )
-            
-            if response.status_code == 200:
-                result = response.json()
-                analysis = result['choices'][0]['message']['content']
-                
-                return {
-                    "success": True,
-                    "analysis": analysis,
-                    "condition_category": condition_category,
-                    "language": language,
-                    "model_used": "anthropic/claude-3.5-sonnet"
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": f"API request failed with status {response.status_code}",
-                    "details": response.text
-                }
-                
-        except requests.exceptions.Timeout:
+
+            analysis_text = response.choices[0].message.content
+
             return {
-                "success": False,
-                "error": "Request timeout - please try again"
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "error": f"Network error: {str(e)}"
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Unexpected error: {str(e)}"
+                "success": True,
+                "analysis": analysis_text,
+                "condition_category": condition_category
             }
 
-    def get_health_info(self, topic: str, language: str = "en") -> Dict:
-        """Get detailed health information about a specific topic"""
-        try:
-            language_instruction = self.language_instructions.get(language, self.language_instructions["en"])
-            
-            system_prompt = f"""You are a medical information assistant. Provide comprehensive, accurate health information about the requested topic.
-            {language_instruction}
-            
-            Structure your response with:
-            1. Overview of the condition
-            2. Common symptoms
-            3. Causes
-            4. Treatment options
-            5. Prevention tips
-            6. When to seek medical care
-            
-            Keep the response informative but accessible to general audiences."""
-            
-            payload = {
-                "model": "anthropic/claude-3.5-sonnet",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Provide detailed health information about: {topic}"
-                    }
-                ],
-                "max_tokens": 800,
-                "temperature": 0.2,
-                "top_p": 0.9
-            }
-            
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers=self.headers,
-                json=payload,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                content = result['choices'][0]['message']['content']
-                
-                return {
-                    "success": True,
-                    "content": content,
-                    "topic": topic,
-                    "language": language
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": f"API request failed with status {response.status_code}"
-                }
-                
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error generating health information: {str(e)}"
-            }
+            print(f"--- !!! HUGGING FACE API FAILED !!! ---")
+            print(f"ERROR: {e}")
+            return {"success": False, "error": "Failed to get a response from the AI service."}
 
-# Create a global instance
+# Create a single instance of the service
 llm_service = LLMService()
-
