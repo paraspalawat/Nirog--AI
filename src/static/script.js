@@ -528,31 +528,31 @@ function generateUserId() {
 
 function displayResult(data) {
     const resultContent = document.getElementById('result-content');
-    
+
+    // Get the main analysis text from the AI response
+    const analysisText = data.analysis;
+
+    // Convert the AI's formatting (newlines, bolding) into real HTML
+    // This turns newlines into line breaks
+    let formattedHtml = analysisText.replace(/\n/g, '<br>');
+    // This turns **text** into bold text
+    formattedHtml = formattedHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Create the final HTML to display on the page
+    // This uses the new formatted text
     resultContent.innerHTML = `
         <div class="result-summary">
-            <h4>Analysis:</h4>
-            <p>${data.analysis}</p>
-        </div>
-        <div class="result-meta">
-            <p><strong>Condition Category:</strong> ${data.condition_category}</p>
-            <p><strong>Severity Assessment:</strong> ${data.severity}</p>
-        </div>
-        <div class="result-recommendations">
-            <h4>General Recommendations:</h4>
-            <ul>
-                ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-            </ul>
-        </div>
-        <div class="result-disclaimer">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>${data.disclaimer}</span>
+            <h4>AI Analysis Result</h4>
+            <div class="analysis-content">
+                ${formattedHtml}
+            </div>
         </div>
     `;
     
+    // Show the result section
     resultElement.classList.remove('hidden');
     
-    // Scroll to result
+    // Scroll to the result
     resultElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
