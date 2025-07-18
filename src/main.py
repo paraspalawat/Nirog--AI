@@ -11,21 +11,7 @@ from src.routes.user import user_bp
 from src.routes.symptoms import symptoms_bp
 from src.routes.speech import speech_bp
 
-# Load environment variables
-# --- DELETE THE OLD load_dotenv() LINE AND PASTE THIS CODE ---
-
-# Build the full path to the .env file from the main project folder
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-
-# Check if the file exists before trying to load it
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path=dotenv_path)
-    print("SUCCESS: .env file found and loaded.")
-else:
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(f"FATAL ERROR: .env file not found at the expected path: {dotenv_path}")
-    print("Please make sure your .env file is in the main project directory.")
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+load_dotenv()
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT')
