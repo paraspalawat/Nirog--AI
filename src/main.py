@@ -49,7 +49,10 @@ def serve(path):
             return "index.html not found", 404
 
 
-if __name__ == '__main__':
-port = int(os.environ.get("PORT", 10000))
-app.run(host='0.0.0.0', port=port)
-
+if __name__ == "__main__":
+    # Correctly indented with 4 spaces
+    port = int(os.environ.get("PORT", 10000))
+    
+    # Make sure your app.run call is also indented
+    # and listens on host '0.0.0.0' to be accessible by Render
+    app.run(host='0.0.0.0', port=port)
